@@ -1,0 +1,15 @@
+{
+  "name": "obcache",
+  "version": "0.0.1",
+  "description": "Object Caching",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Qasim Zaidi",
+  "license": "BSD",
+  "dependencies": {
+    "sigmund": "~1.0.0",
+    "lru-cache": "~2.3.1"
+  }
+}
