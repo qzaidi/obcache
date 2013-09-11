@@ -28,21 +28,21 @@ var cache = {
     * ## cache.wrap
     *
     * @param {Function} function to be wrapped
+    * @param {Object} this object for the function being wrapped. Optional
     * @return {Function} Wrapped function that is cache aware
     *
     * Workhorse
     *
     * Given a function, generates a cache aware version of it.
     * The given function must have a callback as its last argument
-    * Giving a name to the function being wrapped is preferred
     *
     **/
-    this.wrap = function (fn) {
+    this.wrap = function (fn,thisobj) {
       var lru = this.lru;
       var fname = fn.name || Date.now();
 
       return function() {
-        var self = this;
+        var self = thisobj || this;
         var args = Array.prototype.slice.apply(arguments);
         var callback = args.pop();
         var key,data;
@@ -60,7 +60,6 @@ var cache = {
           if (!err && data) {
             return callback.call(self,err,data); // found in cache
           }
-
 
           args.push(function(err,res) {
             if (!err) { 
