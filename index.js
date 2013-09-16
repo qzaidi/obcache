@@ -22,6 +22,7 @@ var cache = {
    **/
   Create: function(options) {
     var lru = LRU(options);
+    var anonFnId = 0;
     this.lru = lru;
     /**
     *
@@ -39,7 +40,7 @@ var cache = {
     **/
     this.wrap = function (fn,thisobj) {
       var lru = this.lru;
-      var fname = fn.name || Date.now();
+      var fname = fn.name || anonFnId++;
 
       return function() {
         var self = thisobj || this;
