@@ -74,7 +74,13 @@ var cache = {
 
       };
     };
-  }
+
+    // re-export keys and values
+    this.keys = this.lru.keys.bind(this.lru);
+    this.values = this.lru.values.bind(this.lru);
+  },
+
+  debug: require('./debug')
 };
 
 module.exports = cache;
