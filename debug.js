@@ -32,10 +32,16 @@ var debug = {
 
   view: function(req,res,next) {
     var data = [];
-    Object.keys(caches).forEach(function(cname) {
-      data.push({ name: cname,  values: caches[cname].values() });
+    var cnames = Object.keys(caches);
+    cnames.forEach(function(cname) {
+      var cache = caches[cname];
+      var values = cache.values();
+      var stats = { name: cname, size: JSON.stringify(values).length, keycount: cache.keys().length };
+      if (req.query.detail) {
+        stats.values = values;
+      }
+      data.push(stats);
     });
-
     res.json(data);
   }
 
