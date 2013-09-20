@@ -59,7 +59,10 @@ var cache = {
         // and hence this function.
         (function(err, data) {
           if (!err && data) {
-            return callback.call(self,err,data); // found in cache
+            process.nextTick(function() {
+              callback.call(self,err,data); // found in cache
+            });
+            return;
           }
 
           args.push(function(err,res) {
@@ -71,7 +74,6 @@ var cache = {
 
           fn.apply(self,args);
         }(null,data));
-
       };
     };
 
