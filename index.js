@@ -24,6 +24,7 @@ var cache = {
     var lru = LRU(options);
     var anonFnId = 0;
     this.lru = lru;
+    this.stats = { hit: 0, miss: 0};
     /**
     *
     * ## cache.wrap
@@ -40,6 +41,7 @@ var cache = {
     **/
     this.wrap = function (fn,thisobj) {
       var lru = this.lru;
+      var stats = this.stats;
       var fname = fn.name || anonFnId++;
 
       return function() {
@@ -62,6 +64,7 @@ var cache = {
             process.nextTick(function() {
               callback.call(self,err,data); // found in cache
             });
+            stats.hit++;
             return;
           }
 
@@ -73,6 +76,7 @@ var cache = {
           });
 
           fn.apply(self,args);
+          return stats.miss++;
         }(null,data));
       };
     };
