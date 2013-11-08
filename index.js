@@ -17,14 +17,30 @@ var cache = {
    *
    * Creates a new instance with its own LRU Cache
    *
-   * @param {Object} LRU Options
+   * @param {Object} Cache Options
+   * ```js
+   * {
+   *  reset: {
+   *    interval: 10000, // msec reset interval
+   *    firstReset: 1000, // time for first reset (optional)
+   *  }
+   *  maxAge: 10000 // lru max age
+   *  ...
+   * }
+   *
+   * ```
    *
    **/
   Create: function(options) {
     var lru = LRU(options);
     var anonFnId = 0;
     this.lru = lru;
-    this.stats = { hit: 0, miss: 0};
+    this.stats = { hit: 0, miss: 0, reset: 0};
+    var nextResetTime;
+
+    if (options.reset) {
+      nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
+    }
     /**
     *
     * ## cache.wrap
@@ -52,6 +68,13 @@ var cache = {
 
         if (typeof callback !== 'function') {
           throw new Error('last argument to ' + fname + ' should be a function');
+        }
+
+        if (nextResetTime && (nextResetTime < Date.now())) {
+          console.log('resetting cache ' + nextResetTime);
+          lru.reset();
+          stats.reset++;
+          nextResetTime += options.reset.interval;
         }
 
         key = keygen(fname,args);

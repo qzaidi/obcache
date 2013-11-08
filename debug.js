@@ -18,6 +18,10 @@
  * Then expose debug.view on some route to see all keys in cache
  * app.get('/debug/caches',debug.view);
  *
+ * Or install a signal handler and print debugging info on SIGUSR2
+ *
+ * process.on('SIGUSR2', debug.log);
+ *
  **/
 
 var caches = {};
@@ -41,7 +45,8 @@ var debug = {
                     name: cname, 
                     size: JSON.stringify(values).length, 
                     keycount: cache.keys().length, 
-                    hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0
+                    hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
+                    resets : cachestats.reset
                   };
       if (req.query.detail) {
         stats.values = values;
@@ -49,6 +54,10 @@ var debug = {
       data.push(stats);
     });
     res.json(data);
+  },
+
+  log: function() {
+    debug.view({ query: {} },{ json: console.log }, function() { });
   }
 
 };
