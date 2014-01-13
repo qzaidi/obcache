@@ -11,5 +11,9 @@
   "dependencies": {
     "sigmund": "~1.0.0",
     "lru-cache": "~2.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/qzaidi/obcache.git"
   }
 }
