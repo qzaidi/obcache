@@ -5,7 +5,7 @@ var sigmund = require('sigmund');
 
 function keygen(name,args) {
   var input = { f: name, a: args };
-  return sigmund(input,4);
+  return sigmund(input,6);
 }
 
 var cache = {
