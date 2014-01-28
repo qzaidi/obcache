@@ -36,8 +36,15 @@ var cache = {
   Create: function(options) {
     var nextResetTime;
     var anonFnId = 0;
+    var store;
 
-    var store = this.store = lru.init(options);
+    if (options && options.redis) {
+      store = require('./redis').init(options);
+    } else {
+      store = require('./lru').init(options);
+    }
+
+    this.store = store;
     this.stats = { hit: 0, miss: 0, reset: 0};
 
     if (options && options.reset) {

@@ -1,8 +1,32 @@
-var redis = require('../redis');
+"use strict";
 
-redis.create({ maxAge: 60000 });
-redis.set('hello', { world: 1, universe: 20 });
+var obcache = require('../index');
+var debug = require('../debug');
 
-setTimeout(function() {
-  redis.get('hello',console.log);
-},1000);
+var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) }, redis: { port: 6379 } }),'redis');
+
+(function() {
+  var original = function (id,cb) {
+    process.nextTick(function() {
+      cb(null,id);
+    });
+  };
+  var wrapped = cache.wrap(original);
+
+  original(5,console.log);
+  wrapped(5,console.log);
+
+  // this should find it in cache
+  process.nextTick(function() { 
+    wrapped(5,console.log)
+    debug.log();
+  });
+
+  setTimeout(function() {
+    wrapped(5,console.log);
+  },5000);
+
+  setTimeout(function() {
+    debug.log();
+  },15000);
+}());
