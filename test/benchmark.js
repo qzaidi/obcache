@@ -1,5 +1,9 @@
 "use strict";
 
+/* 
+ * This test only demonstrates the overhead of the cache.
+ */
+
 var obcache = require('../index');
 var cache = new obcache.Create();
 var Benchmark = require('benchmark');

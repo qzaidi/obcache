@@ -1,7 +1,9 @@
 "use strict";
+/*jslint undef: true */
 
-var LRU = require('lru-cache');
+var lru = require('./lru');
 var sigmund = require('sigmund');
+var log = require('debug')('obcache');
 
 function keygen(name,args) {
   var input = { f: name, a: args };
@@ -23,7 +25,7 @@ var cache = {
    *  reset: {
    *    interval: 10000, // msec reset interval
    *    firstReset: 1000, // time for first reset (optional)
-   *  }
+   *  },
    *  maxAge: 10000 // lru max age
    *  ...
    * }
@@ -32,13 +34,13 @@ var cache = {
    *
    **/
   Create: function(options) {
-    var lru = LRU(options);
-    var anonFnId = 0;
-    this.lru = lru;
-    this.stats = { hit: 0, miss: 0, reset: 0};
     var nextResetTime;
+    var anonFnId = 0;
 
-    if (options.reset) {
+    var store = this.store = lru.init(options);
+    this.stats = { hit: 0, miss: 0, reset: 0};
+
+    if (options && options.reset) {
       nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
     }
     /**
@@ -56,9 +58,10 @@ var cache = {
     *
     **/
     this.wrap = function (fn,thisobj) {
-      var lru = this.lru;
       var stats = this.stats;
-      var fname = fn.name || anonFnId++;
+      var fname = (fn.name || '_' ) + anonFnId++;
+
+      log('wrapping function ' + fname);
 
       return function() {
         var self = thisobj || this;
@@ -71,19 +74,20 @@ var cache = {
         }
 
         if (nextResetTime && (nextResetTime < Date.now())) {
-          console.log('resetting cache ' + nextResetTime);
-          lru.reset();
+          log('resetting cache ' + nextResetTime);
+          store.reset();
           stats.reset++;
           nextResetTime += options.reset.interval;
         }
 
         key = keygen(fname,args);
 
-        data = lru.get(key);
-        // while LRU is sync - we need to support redis like stores in future, which won't be sync, 
-        // and hence this function.
-        (function(err, data) {
+        log('fetching from cache ' + key);
+        data = store.get(key, onget);
+
+        function onget(err, data) {
           if (!err && data) {
+            log('cache hit' + key);
             process.nextTick(function() {
               callback.call(self,err,data); // found in cache
             });
@@ -91,22 +95,23 @@ var cache = {
             return;
           }
 
+          log('cache miss ' + key);
           args.push(function(err,res) {
-            if (!err) { 
-              lru.set(key,res);
+            if (!err) {
+              log('saving key ' + key);
+              store.set(key,res);
             }
+
             callback.call(self,err,res);
           });
 
           fn.apply(self,args);
           return stats.miss++;
-        }(null,data));
+        }
+
       };
     };
 
-    // re-export keys and values
-    this.keys = this.lru.keys.bind(this.lru);
-    this.values = this.lru.values.bind(this.lru);
   },
 
   debug: require('./debug')

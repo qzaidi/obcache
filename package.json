@@ -1,6 +1,6 @@
 {
   "name": "obcache",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Object Caching",
   "main": "index.js",
   "scripts": {
@@ -10,7 +10,8 @@
   "license": "BSD",
   "dependencies": {
     "sigmund": "~1.0.0",
-    "lru-cache": "~2.3.1"
+    "lru-cache": "~2.3.1",
+    "debug": "*"t 
   },
   "repository": {
     "type": "git",

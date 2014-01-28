@@ -40,11 +40,10 @@ var debug = {
     cnames.forEach(function(cname) {
       var cache = caches[cname];
       var cachestats = cache.stats;
-      var values = cache.values();
       var stats = { 
                     name: cname, 
-                    size: JSON.stringify(values).length, 
-                    keycount: cache.keys().length, 
+                    size: cache.store.size(), 
+                    keycount: cache.store.keycount(), 
                     hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
                     resets : cachestats.reset
                   };
