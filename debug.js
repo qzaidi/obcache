@@ -47,8 +47,8 @@ var debug = {
                     hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
                     resets : cachestats.reset
                   };
-      if (req.query.detail) {
-        stats.values = values;
+      if (req.query.detail == cname && cache.store.values) {
+        stats.values = cache.store.values();
       }
       data.push(stats);
     });

@@ -34,7 +34,9 @@ var lru = {
 
       keycount: function() {
         return lru.keys().length;
-      }
+      },
+
+      values: lru.values.bind(lru)
     };
 
     return store;
