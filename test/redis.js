@@ -3,7 +3,7 @@
 var obcache = require('../index');
 var debug = require('../debug');
 
-var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) }, redis: { port: 6379 } }),'redis');
+var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) }, redis: { port: 6379 }, id: 1 }),'redis');
 
 (function() {
   var original = function (id,cb) {

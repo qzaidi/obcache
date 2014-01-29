@@ -6,9 +6,24 @@ var redisStore = {
 
   init: function(options) {
 
-    var client = redis.createClient(options.redis);
-    var maxAge = options && options.maxAge || 60000;
-    var prefix = 'obc:';
+    var client ;
+    var prefix;
+    var keylen = 0;
+    var maxAge = (options && options.maxAge) || 60000;
+
+    function setKeylen(err,size) {
+      keylen = size;
+    }
+
+
+    if (!options || isNaN(Number(options.id)) ) {
+      throw new Error('Specify an integer cacheid for persistence across reboots, not ' + options.id);
+    }
+
+    client = redis.createClient(options.redis);
+    client.select(options.id);
+    client.dbsize(setKeylen);
+    prefix = 'obc:' + options.id + ':' ;
 
     var rcache = {
       maxAge : maxAge,
@@ -59,7 +74,10 @@ var redisStore = {
       },
 
       keycount: function() {
-        return 0;
+        // this is a hack to make this function sync, 
+        // second call will return a truer keycount
+        client.dbsize(setKeylen);
+        return keylen;
       }
     };
     return rcache;
@@ -68,3 +86,11 @@ var redisStore = {
 };
 
 module.exports = redisStore;
+
+(function() {
+  if (require.main === module) {
+    var store = redisStore.init({ redis: { port: 6379 }, id: 0 });
+    console.log('created cache ' + store);
+    store.keycount(console.log);
+  }
+}());

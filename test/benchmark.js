@@ -6,7 +6,7 @@
 
 var obcache = require('../index');
 var cache = new obcache.Create();
-var rcache = new obcache.Create({ redis: { port: 6379 } });
+var rcache = new obcache.Create({ redis: { port: 6379 }, id: 0 });
 var Benchmark = require('benchmark');
 var suite = new Benchmark.Suite();
 
