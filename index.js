@@ -7,7 +7,7 @@ var log = require('debug')('obcache');
 
 function keygen(name,args) {
   var input = { f: name, a: args };
-  return sigmund(input,6);
+  return sigmund(input,8);
 }
 
 var cache = {
