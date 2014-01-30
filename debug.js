@@ -47,8 +47,14 @@ var debug = {
                     hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
                     resets : cachestats.reset
                   };
-      if (req.query.detail == cname && cache.store.values) {
-        stats.values = cache.store.values();
+      if (req.query) {
+        if (req.query.detail == cname && cache.store.values) {
+          stats.values = cache.store.values();
+        } else if (req.method == 'POST' && req.query.flush == cname) {
+          cache.store.reset();
+          stats.resets++;
+          cache.stats.reset++;
+        }
       }
       data.push(stats);
     });

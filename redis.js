@@ -65,8 +65,8 @@ var redisStore = {
         } 
       },
 
-      reset: function(key,val,cb) {
-
+      reset: function() {
+        client.flushdb();
       },
 
       size: function() {
