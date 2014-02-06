@@ -42,7 +42,8 @@ var redisStore = {
           } catch (e) {
             return cb(e);
           }
-          client.expire(key,ttl);
+          // don't reset the ttl
+          //client.expire(key,ttl);
           return cb(null, result);
         });
       },
