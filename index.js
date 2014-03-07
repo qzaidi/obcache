@@ -39,6 +39,7 @@ var cache = {
     var store;
 
     if (options && options.redis) {
+      log('creating a redis cache');
       store = require('./redis').init(options);
     } else {
       store = require('./lru').init(options);
@@ -67,10 +68,11 @@ var cache = {
     this.wrap = function (fn,thisobj) {
       var stats = this.stats;
       var fname = (fn.name || '_' ) + anonFnId++;
+      var cachedfunc;
 
       log('wrapping function ' + fname);
 
-      return function() {
+      cachedfunc = function() {
         var self = thisobj || this;
         var args = Array.prototype.slice.apply(arguments);
         var callback = args.pop();
@@ -117,6 +119,26 @@ var cache = {
         }
 
       };
+      log('created new cache function with name ' + fname);
+      cachedfunc.cacheName = fname;
+      return cachedfunc;
+    };
+
+    /* first argument is the function, last is the value */
+    this.warmup = function() {
+      var args = Array.prototype.slice.apply(arguments);
+      var func = args.shift();
+      var res = args.pop();
+      var fname,key;
+
+      if (!func || typeof(func) != 'function' || !func.cacheName) {
+        throw new Error('Not a obcache function');
+      }
+
+      fname = func.cacheName;
+      key = keygen(fname,args);
+      log('warming up cache for ' + fname + ' with key ' + key);
+      store.set(key,res);
     };
 
   },

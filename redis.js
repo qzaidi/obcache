@@ -1,6 +1,7 @@
 "use strict";
 
 var redis = require('redis');
+var debug = require('debug')('obcache');
 
 var redisStore = {
 
@@ -54,6 +55,7 @@ var redisStore = {
           var ttl = this.maxAge/1000;
           var obj = JSON.stringify(val);
 
+          debug('setting key ' + key + ' in redis with ttl ' + ttl);
           client.setex(key, ttl, obj, function(err){
             if (cb) {
               cb.apply(this, arguments);
