@@ -4,13 +4,23 @@
 var lru = require('./lru');
 var sigmund = require('sigmund');
 var log = require('debug')('obcache');
+var util = require('util');
 
 function keygen(name,args) {
   var input = { f: name, a: args };
   return sigmund(input,8);
 }
 
+function CacheError() {
+  Error.captureStackTrace(this, CacheError);
+}
+
+util.inherits(CacheError,Error);
+
+
 var cache = {
+  
+  Error: CacheError,
 
   /**
    * ## cache.Create
@@ -105,6 +115,11 @@ var cache = {
           }
 
           log('cache miss ' + key);
+
+          if (err instanceof CacheError) {
+            err = undefined;
+          }
+
           args.push(function(err,res) {
             if (!err) {
               log('saving key ' + key);
@@ -123,6 +138,7 @@ var cache = {
       cachedfunc.cacheName = fname;
       return cachedfunc;
     };
+
 
     /* first argument is the function, last is the value */
     this.warmup = function() {
