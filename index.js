@@ -116,16 +116,16 @@ var cache = {
 
           log('cache miss ' + key);
 
-          if (err instanceof CacheError) {
-            err = undefined;
-          }
-
           args.push(function(err,res) {
             if (!err) {
               log('saving key ' + key);
               store.set(key,res);
             }
 
+            if (err && (err instanceof CacheError)) {
+              log('skipping from cache, overwriting error');
+              err = undefined;
+            } 
             callback.call(self,err,res);
           });
 
