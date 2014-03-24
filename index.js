@@ -157,6 +157,22 @@ var cache = {
       store.set(key,res);
     };
 
+    this.invalidate = function() {
+      var args = Array.prototype.slice.apply(arguments);
+      var func = args.shift();
+      var res = args.pop();
+      var fname,key;
+
+      if (!func || typeof(func) != 'function' || !func.cacheName) {
+        throw new Error('Not a obcache function');
+      }
+
+      fname = func.cacheName;
+      key = keygen(fname,args);
+      log('warming up cache for ' + fname + ' with key ' + key);
+      store.expire(key);
+    }
+
   },
 
   debug: require('./debug')

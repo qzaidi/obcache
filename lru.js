@@ -24,6 +24,11 @@ var lru = {
         }
       },
 
+      expire: function(key,cb) {
+        lru.del(key);
+        cb && cb(null);
+      },
+
       reset: function() {
         lru.reset();
       },

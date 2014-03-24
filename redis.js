@@ -68,6 +68,10 @@ var redisStore = {
         } 
       },
 
+      expire: function(key,cb) {
+        client.expire(key,0,cb || function() {});
+      },
+
       reset: function() {
         client.flushdb();
       },

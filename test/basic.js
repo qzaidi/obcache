@@ -12,19 +12,24 @@ var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstRe
     });
   };
   var wrapped = cache.wrap(original);
+  cache.warmup(wrapped,10,'iamwarmedup');
 
   original(5,console.log);
   wrapped(5,console.log);
+  wrapped(10,console.log);
 
   // this should find it in cache
   process.nextTick(function() { 
     wrapped(5,console.log)
+    cache.invalidate(wrapped,10);
     debug.log();
   });
 
   setTimeout(function() {
     wrapped(5,console.log);
+    wrapped(10,console.log);
   },5000);
+
 
   setTimeout(function() {
     debug.log();
