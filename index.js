@@ -105,7 +105,7 @@ var cache = {
         data = store.get(key, onget);
 
         function onget(err, data) {
-          if (!err && data) {
+          if (!err && data != undefined) {
             log('cache hit' + key);
             process.nextTick(function() {
               callback.call(self,err,data); // found in cache
