@@ -11,6 +11,8 @@ var redisStore = {
     var prefix;
     var keylen = 0;
     var maxAge = (options && options.maxAge) || 60000;
+    var port = options.redis.port;
+    var host = options.redis.host;
 
     function setKeylen(err,size) {
       keylen = size;
@@ -21,7 +23,7 @@ var redisStore = {
       throw new Error('Specify an integer cacheid for persistence across reboots, not ' + options.id);
     }
 
-    client = redis.createClient(options.redis);
+    client = redis.createClient(port, host);
     client.select(options.id);
     client.dbsize(setKeylen);
     prefix = 'obc:' + options.id + ':' ;
