@@ -3,10 +3,11 @@
 var obcache = require('../index');
 var debug = require('../debug');
 
-var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
+var cache = debug.register(new obcache.Create({ queueEnabled: true, reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
 
 (function() {
   var original = function (id,cb) {
+    console.log('original called for ' + id);
     process.nextTick(function() {
       cb(null,id);
     });
@@ -15,6 +16,8 @@ var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstRe
   cache.warmup(wrapped,10,'iamwarmedupnow');
 
   original(5,console.log);
+  wrapped(5,console.log);
+  wrapped(5,console.log);
   wrapped(5,console.log);
   wrapped(10,console.log);
 

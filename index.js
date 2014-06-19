@@ -2,6 +2,7 @@
 /*jslint undef: true */
 
 var lru = require('./lru');
+var LRU = require('lru-cache');
 var sigmund = require('sigmund');
 var log = require('debug')('obcache');
 var util = require('util');
@@ -56,6 +57,9 @@ var cache = {
     }
 
     this.store = store;
+
+    this.pending = options.queueEnabled?{}:false;
+
     this.stats = { hit: 0, miss: 0, reset: 0};
 
     if (options && options.reset) {
@@ -79,6 +83,7 @@ var cache = {
       var stats = this.stats;
       var fname = (fn.name || '_' ) + anonFnId++;
       var cachedfunc;
+      var pending = this.pending;
 
       log('wrapping function ' + fname);
 
@@ -97,6 +102,7 @@ var cache = {
           store.reset();
           stats.reset++;
           nextResetTime += options.reset.interval;
+          // we aren't resetting pending here, don't think we need to.
         }
 
         key = keygen(fname,args);
@@ -105,6 +111,8 @@ var cache = {
         data = store.get(key, onget);
 
         function onget(err, data) {
+          var v;
+
           if (!err && data != undefined) {
             log('cache hit' + key);
             process.nextTick(function() {
@@ -116,6 +124,19 @@ var cache = {
 
           log('cache miss ' + key);
 
+          if (pending) {
+            v = pending[key];
+            if (v == undefined) {
+              pending[key] = [log];
+            } else {
+              log('fetch is pending, queuing up for ' + key);
+              return v.push(callback);
+            }
+          }
+
+          // this gets called when the original function returns.
+          // we will first save the result in cache, and then 
+          // call the callback
           args.push(function(err,res) {
             if (!err) {
               log('saving key ' + key);
@@ -127,6 +148,17 @@ var cache = {
               err = undefined;
             } 
             callback.call(self,err,res);
+
+            // call any remaining callbacks
+
+            if (pending) {
+              v = pending[key];
+              if ( v != undefined && v.length) {
+                log('fetch completed, processing queue for ' + key);
+                v.forEach(function(x) { x.call(self,err,res); });
+                delete pending[key];
+              }
+            }
           });
 
           fn.apply(self,args);
@@ -171,7 +203,7 @@ var cache = {
       key = keygen(fname,args);
       log('warming up cache for ' + fname + ' with key ' + key);
       store.expire(key);
-    }
+    };
 
   },
 
