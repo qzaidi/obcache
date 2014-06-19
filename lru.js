@@ -6,9 +6,16 @@ var lru = {
 
   init: function(options) {
 
-    var lru = LRU(options);
+    var lru,store;
+    var lruOptions = options;
 
-    var store = {
+    lruOptions.length = function(v) {
+      return JSON.stringify(v).length;
+    };
+
+    lru = LRU(options);
+
+    store = {
       
       lru: lru,
 
@@ -34,11 +41,11 @@ var lru = {
       },
 
       size: function() {
-        return JSON.stringify(lru.values()).length;
+        return lru.length
       },
 
       keycount: function() {
-        return lru.keys().length;
+        return lru.itemCount;
       },
 
       values: lru.values.bind(lru)

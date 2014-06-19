@@ -1,6 +1,6 @@
 {
   "name": "obcache",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Object Caching",
   "main": "index.js",
   "scripts": {

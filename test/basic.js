@@ -12,7 +12,7 @@ var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstRe
     });
   };
   var wrapped = cache.wrap(original);
-  cache.warmup(wrapped,10,'iamwarmedup');
+  cache.warmup(wrapped,10,'iamwarmedupnow');
 
   original(5,console.log);
   wrapped(5,console.log);
