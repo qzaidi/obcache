@@ -9,7 +9,8 @@ var cache = debug.register(new obcache.Create({ queueEnabled: true, reset: { int
   var original = function (id,cb) {
     console.log('original called for ' + id);
     process.nextTick(function() {
-      cb(null,id);
+      var v = JSON.stringify({ p: id });
+      cb(null,v);
     });
   };
   var wrapped = cache.wrap(original);

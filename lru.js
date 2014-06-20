@@ -7,13 +7,21 @@ var lru = {
   init: function(options) {
 
     var lru,store;
-    var lruOptions = options;
+    var lruOptions = {};
 
-    lruOptions.length = function(v) {
-      return JSON.stringify(v).length;
-    };
+    if (options.maxSize) {
+      lruOptions.length = function(v) {
+        return JSON.stringify(v).length;
+      };
+      lruOptions.max = options.maxSize;
+    } else {
+      lruOptions.max = options.max;
+    }
 
-    lru = LRU(options);
+    lruOptions.maxAge = options.maxAge;
+    lruOptions.dispose = options.dispose;
+
+    lru = LRU(lruOptions);
 
     store = {
       
