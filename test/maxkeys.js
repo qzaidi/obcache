@@ -18,12 +18,19 @@ var cache = debug.register(new obcache.Create({ max: 20,
   };
   var wrapped = cache.wrap(original);
 
-  for (var i=0; i < 40; i++) {
-    wrapped(i,console.log);
+  function run() {
+    for (var i=0; i < 100; i++) {
+      wrapped(i,console.log);
+    }
+    process.nextTick(function() {
+      debug.log();
+    });
+
   }
 
-  process.nextTick(function() {
-    debug.log();
-  });
+  run();
+
+  process.nextTick(run);
+
 
 }());
