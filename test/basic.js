@@ -3,12 +3,13 @@
 var obcache = require('../index');
 var debug = require('../debug');
 
-var cache = debug.register(new obcache.Create({ reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
+var cache = debug.register(new obcache.Create({ max: 1000, maxAge: 300000, reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
 
 (function() {
   var original = function (id,cb) {
     process.nextTick(function() {
-      cb(null,id);
+      var v = JSON.stringify({ p: id });
+      cb(null,v);
     });
   };
   var wrapped = cache.wrap(original);
