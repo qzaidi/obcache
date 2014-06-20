@@ -166,7 +166,7 @@ var cache = {
         }
 
       };
-      log('created new cache function with name ' + fname);
+      log('created new cache function with name ' + fname + JSON.stringify(options));
       cachedfunc.cacheName = fname;
       return cachedfunc;
     };
