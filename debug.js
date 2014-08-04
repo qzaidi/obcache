@@ -24,6 +24,8 @@
  *
  **/
 
+var hostname = require('os').hostname();
+
 var caches = {};
 var index = 0;
 
@@ -58,7 +60,7 @@ var debug = {
       }
       data.push(stats);
     });
-    res.json(data);
+    res.json({ pid: process.pid, uptime: process.uptime(), host: hostname, data:data });
   },
 
   log: function() {
