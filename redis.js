@@ -71,6 +71,7 @@ var redisStore = {
       },
 
       expire: function(key,cb) {
+        key = prefix + key;
         client.expire(key,0,cb || function() {});
       },
 
