@@ -192,7 +192,6 @@ var cache = {
     this.invalidate = function() {
       var args = Array.prototype.slice.apply(arguments);
       var func = args.shift();
-      var res = args.pop();
       var fname,key;
 
       if (!func || typeof(func) != 'function' || !func.cacheName) {
