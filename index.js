@@ -200,7 +200,7 @@ var cache = {
 
       fname = func.cacheName;
       key = keygen(fname,args);
-      log('warming up cache for ' + fname + ' with key ' + key);
+      log('invalidating cache for ' + fname + ' with key ' + key);
       store.expire(key);
     };
 
