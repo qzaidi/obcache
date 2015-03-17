@@ -47,7 +47,8 @@ var debug = {
                     size: cache.store.size(), 
                     keycount: cache.store.keycount(), 
                     hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
-                    resets : cachestats.reset
+                    resets : cachestats.reset,
+                    pending: cachestats.pending 
                   };
       if (req.query) {
         if (req.query.detail == cname && cache.store.values) {

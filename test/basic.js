@@ -3,7 +3,7 @@
 var obcache = require('../index');
 var debug = require('../debug');
 
-var cache = debug.register(new obcache.Create({ queueEnabled: true, reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
+var cache = debug.register(new obcache.Create({ queueEnabled: false, reset: { interval: 2000, firstReset: new Date(Date.now() + 1000) } }));
 
 (function() {
   var original = function (id,cb) {
@@ -21,6 +21,9 @@ var cache = debug.register(new obcache.Create({ queueEnabled: true, reset: { int
   wrapped(5,console.log);
   wrapped(5,console.log);
   wrapped(10,console.log);
+
+  // this log should show one pending request
+  debug.log();
 
   // this should find it in cache
   process.nextTick(function() { 

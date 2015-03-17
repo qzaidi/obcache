@@ -60,7 +60,7 @@ var cache = {
 
     this.pending = options.queueEnabled?{}:false;
 
-    this.stats = { hit: 0, miss: 0, reset: 0};
+    this.stats = { hit: 0, miss: 0, reset: 0, pending: 0};
 
     if (options && options.reset) {
       nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
@@ -128,6 +128,7 @@ var cache = {
             v = pending[key];
             if (v == undefined) {
               pending[key] = [log];
+              stats.pending++;
             } else {
               log('fetch is pending, queuing up for ' + key);
               return v.push(callback);
@@ -156,6 +157,7 @@ var cache = {
               if ( v != undefined && v.length) {
                 log('fetch completed, processing queue for ' + key);
                 v.forEach(function(x) { x.call(self,err,res); });
+                stats.pending--;
                 delete pending[key];
               }
             }
