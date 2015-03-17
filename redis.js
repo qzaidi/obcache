@@ -13,6 +13,7 @@ var redisStore = {
     var maxAge = (options && options.maxAge) || 60000;
     var port = options.redis.port;
     var host = options.redis.host;
+    var ropts = {};
 
     function setKeylen(err,size) {
       keylen = size;
@@ -23,9 +24,22 @@ var redisStore = {
       throw new Error('Specify an integer cacheid for persistence across reboots, not ' + options.id);
     }
 
-    client = redis.createClient(port, host);
-    client.select(options.id);
-    client.dbsize(setKeylen);
+    if (options.redis.twemproxy) {
+      ropts.no_ready_check = true;
+      debug('twemproxy compat mode. stats on keys will not be available.');
+
+    }
+    client = redis.createClient(port, host, ropts);
+
+    client.on('error', function(err) {
+      console.log('redis error ' + err);
+    });
+
+    if (!options.redis.twemproxy) {
+      client.select(options.id);
+      client.dbsize(setKeylen);
+    } 
+
     prefix = 'obc:' + options.id + ':' ;
 
     var rcache = {
@@ -76,6 +90,9 @@ var redisStore = {
       },
 
       reset: function() {
+        if (options.redis.twemproxy) {
+          throw new Error('Reset is not possible in twemproxy compat mode');
+        }
         client.flushdb();
       },
 
@@ -86,12 +103,14 @@ var redisStore = {
       keycount: function() {
         // this is a hack to make this function sync, 
         // second call will return a truer keycount
+        if (options.redis.twemproxy) {
+          return -1;
+        }
         client.dbsize(setKeylen);
         return keylen;
       }
     };
     return rcache;
-
   }
 };
 
