@@ -42,11 +42,12 @@ var debug = {
     cnames.forEach(function(cname) {
       var cache = caches[cname];
       var cachestats = cache.stats;
+      var total = cachestats.hit + cachestats.miss;
       var stats = { 
                     name: cname, 
                     size: cache.store.size(), 
                     keycount: cache.store.keycount(), 
-                    hitrate: ((cachestats.hit*100)/(cachestats.hit+cachestats.miss+1))|0,
+                    hitrate: ((cachestats.hit*100)/(total || 1))|0,
                     resets : cachestats.reset,
                     pending: cachestats.pending 
                   };
@@ -64,8 +65,8 @@ var debug = {
     res.json({ pid: process.pid, uptime: process.uptime(), host: hostname, data:data });
   },
 
-  log: function() {
-    debug.view({ query: {} },{ json: console.log }, function() { });
+  log: function(cb) {
+    debug.view({ query: {} },{ json: cb || console.log }, function() { });
   }
 
 };

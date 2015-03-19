@@ -156,7 +156,14 @@ var cache = {
               v = pending[key];
               if ( v != undefined && v.length) {
                 log('fetch completed, processing queue for ' + key);
-                v.forEach(function(x) { x.call(self,err,res); });
+                // by doing this in next tick, we are just ensuring correctness of pending stats,
+                // else the callback will see incorrect value of pending.
+                // this also ensures that the callbacks are called in the correct order, with the 
+                // first caller getting the value first instead of last.
+                process.nextTick(function() {
+                  v.forEach(function(x) { x.call(self,err,res); });
+                });
+                log('pending queue cleared for ' + key);
                 stats.pending--;
                 delete pending[key];
               }
