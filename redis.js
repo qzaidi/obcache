@@ -66,6 +66,7 @@ var redisStore = {
 
     var rcache = {
       maxAge : maxAge,
+      client : writeClient,
       get : function(key, cb) {
         key = prefix + key;
         readClient.get(key, function(err, data){
