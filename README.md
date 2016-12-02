@@ -10,6 +10,8 @@ Currently 2 stores are supported.
 
 Use Redis for persistent caches.
 
+Optionally use deflate compression. To enable compression pass compress: true in cache options.
+
 Usage
 ------
 
@@ -17,13 +19,13 @@ Usage
 var obcache = require('obcache');
 
 // create a cache with max 10000 items and a TTL of 300 seconds
-var cache = new obcache.Create({ max: 10000, maxAge: 300 });
+var cache = new obcache.Create({ max: 10000, maxAge: 300, compress: false });
 
 ```
 
 The max parameter above indicates the maximum keys that can be cached. If your values are variable sized and you want a finer control
 on cache memory usage, specify maxSize instead. If no max is specified, max keys supported are Inifinity, and size
-of the cache will be governed by maxAge alone.
+of the cache will be governed by maxAge alone. compress parameter will enable compression if set to true.
 
 Then wrap your original function like this
 
