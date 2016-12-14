@@ -17,21 +17,21 @@ function CacheError() {
   Error.captureStackTrace(this, CacheError);
 }
 
-function pack(obj, compress, cb){
+function pack(obj, cacheObj, cb){
   try {
     var data = JSON.stringify(obj);
-    if (compress) data = compression.pack(data);
+    if (cacheObj.compressType) data = compression[cacheObj.compressType].pack(data);
     return cb(null, data);
   } catch (e) {
     return cb(e);
   }
 }
 
-function unpack(str, compress, cb){
+function unpack(str, cacheObj, cb){
   var data;
   try {
-    if (compress) {
-      str = compression.unpack(str);
+    if (cacheObj.compressType) {
+      str = compression[cacheObj.compressType].unpack(str);
     }
     data = str.toString();
     data = JSON.parse(data);
@@ -87,7 +87,11 @@ var cache = {
 
     this.stats = { hit: 0, miss: 0, reset: 0, pending: 0};
 
-    this.compress = options.compress ? true : false;
+    if (options.compressType &&
+      compression.SUPPORTED_TYPES.indexOf(options.compressType) !== -1 &&
+      compression[options.compressType]) {
+      this.compressType = options.compressType;
+    }
 
     if (options && options.reset) {
       nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
@@ -140,7 +144,7 @@ var cache = {
 
         function processValue(e,r){
           if(e) onget(e,r);
-          unpack(r, cacheObj.compress, onget);
+          unpack(r, cacheObj, onget);
         }
 
         function onget(err, data) {
@@ -176,7 +180,7 @@ var cache = {
 
             if(err) processPacked(err, res);
 
-            pack(res, cacheObj.compress, processPacked);
+            pack(res, cacheObj, processPacked);
 
             function processPacked(e, r){
 
