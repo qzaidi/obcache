@@ -8,8 +8,9 @@ var log = require('debug')('obcache');
 var util = require('util');
 var compression = require('./compression');
 
-function keygen(name,args) {
-  var input = { f: name, a: args };
+function keygen(name,args, opts) {
+  var input = { f: name, a: args};
+  if(Object.keys(opts).length !== 0) input.o = opts;
   return sigmund(input,8);
 }
 
@@ -121,6 +122,7 @@ var cache = {
 
       cachedfunc = function() {
         var self = thisobj || this;
+        var keyOpts = {};
         var args = Array.prototype.slice.apply(arguments);
         var callback = args.pop();
         var key,data;
@@ -137,7 +139,11 @@ var cache = {
           // we aren't resetting pending here, don't think we need to.
         }
 
-        key = keygen(fname,args);
+        // keyOpts will be used in key generation logic
+        // use minified key names here like ct for compression type
+        if (cacheObj.compressType) keyOpts.ct = cacheObj.compressType;
+
+        key = keygen(fname,args, keyOpts);
 
         log('fetching from cache ' + key);
         data = store.get(key, processValue);
