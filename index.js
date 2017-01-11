@@ -6,14 +6,40 @@ var LRU = require('lru-cache');
 var sigmund = require('sigmund');
 var log = require('debug')('obcache');
 var util = require('util');
+var compression = require('./compression');
 
-function keygen(name,args) {
-  var input = { f: name, a: args };
+function keygen(name,args, opts) {
+  var input = { f: name, a: args};
+  if(Object.keys(opts).length !== 0) input.o = opts;
   return sigmund(input,8);
 }
 
 function CacheError() {
   Error.captureStackTrace(this, CacheError);
+}
+
+function pack(obj, cacheObj, cb){
+  try {
+    var data = JSON.stringify(obj);
+    if (cacheObj.compressType) data = compression[cacheObj.compressType].pack(data);
+    return cb(null, data);
+  } catch (e) {
+    return cb(e);
+  }
+}
+
+function unpack(str, cacheObj, cb){
+  var data;
+  try {
+    if (cacheObj.compressType) {
+      str = compression[cacheObj.compressType].unpack(str);
+    }
+    data = str.toString();
+    data = JSON.parse(data);
+    return cb(null, data);
+  } catch (e) {
+    return cb(e);
+  }
 }
 
 util.inherits(CacheError,Error);
@@ -62,6 +88,12 @@ var cache = {
 
     this.stats = { hit: 0, miss: 0, reset: 0, pending: 0};
 
+    if (options.compressType &&
+      compression.SUPPORTED_TYPES.indexOf(options.compressType) !== -1 &&
+      compression[options.compressType]) {
+      this.compressType = options.compressType;
+    }
+
     if (options && options.reset) {
       nextResetTime = options.reset.firstReset || Date.now() + options.reset.interval;
     }
@@ -84,11 +116,13 @@ var cache = {
       var fname = (fn.name || '_' ) + anonFnId++;
       var cachedfunc;
       var pending = this.pending;
+      var cacheObj = this;
 
       log('wrapping function ' + fname);
 
       cachedfunc = function() {
         var self = thisobj || this;
+        var keyOpts = {};
         var args = Array.prototype.slice.apply(arguments);
         var callback = args.pop();
         var key,data;
@@ -105,16 +139,26 @@ var cache = {
           // we aren't resetting pending here, don't think we need to.
         }
 
-        key = keygen(fname,args);
+        // keyOpts will be used in key generation logic
+        // use minified key names here like ct for compression type
+        if (cacheObj.compressType) keyOpts.ct = cacheObj.compressType;
+
+        key = keygen(fname,args, keyOpts);
 
         log('fetching from cache ' + key);
-        data = store.get(key, onget);
+        data = store.get(key, processValue);
+
+        function processValue(e,r){
+          if(e) onget(e,r);
+          unpack(r, cacheObj, onget);
+        }
 
         function onget(err, data) {
           var v;
 
           if (!err && data != undefined) {
             log('cache hit' + key);
+
             process.nextTick(function() {
               callback.call(self,err,data); // found in cache
             });
@@ -139,33 +183,43 @@ var cache = {
           // we will first save the result in cache, and then 
           // call the callback
           args.push(function(err,res) {
-            if (!err) {
-              log('saving key ' + key);
-              store.set(key,res);
-            }
 
-            if (err && (err instanceof CacheError)) {
-              log('skipping from cache, overwriting error');
-              err = undefined;
-            } 
-            callback.call(self,err,res);
+            if(err) processPacked(err, res);
 
-            // call any remaining callbacks
+            pack(res, cacheObj, processPacked);
 
-            if (pending) {
-              v = pending[key];
-              if ( v != undefined && v.length) {
-                log('fetch completed, processing queue for ' + key);
-                // by doing this in next tick, we are just ensuring correctness of pending stats,
-                // else the callback will see incorrect value of pending.
-                // this also ensures that the callbacks are called in the correct order, with the 
-                // first caller getting the value first instead of last.
-                process.nextTick(function() {
-                  v.forEach(function(x) { x.call(self,err,res); });
-                });
-                log('pending queue cleared for ' + key);
-                stats.pending--;
-                delete pending[key];
+            function processPacked(e, r){
+
+              err = err || e;
+
+              if (!err) {
+                log('saving key ' + key);
+                store.set(key,r);
+              }
+
+              if (err && (err instanceof CacheError)) {
+                log('skipping from cache, overwriting error');
+                err = undefined;
+              }
+              callback.call(self,err,res);
+
+              // call any remaining callbacks
+
+              if (pending) {
+                v = pending[key];
+                if ( v != undefined && v.length) {
+                  log('fetch completed, processing queue for ' + key);
+                  // by doing this in next tick, we are just ensuring correctness of pending stats,
+                  // else the callback will see incorrect value of pending.
+                  // this also ensures that the callbacks are called in the correct order, with the
+                  // first caller getting the value first instead of last.
+                  process.nextTick(function() {
+                    v.forEach(function(x) { x.call(self,err,res); });
+                  });
+                  log('pending queue cleared for ' + key);
+                  stats.pending--;
+                  delete pending[key];
+                }
               }
             }
           });

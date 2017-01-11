@@ -32,7 +32,7 @@ var redisStore = {
     client = redis.createClient(port, host, ropts);
 
     client.on('error', function(err) {
-      console.log('redis error ' + err);
+      debug('redis error ' + err);
     });
 
     if (!options.redis.twemproxy) {
@@ -49,19 +49,10 @@ var redisStore = {
         key = prefix + key;
         var ttl = this.maxAge/1000;
         client.get(key, function(err, data){
-          var result;
           if (err || !data) {
             return cb(err);
           }
-          data = data.toString();
-          try {
-            result = JSON.parse(data); 
-          } catch (e) {
-            return cb(e);
-          }
-          // don't reset the ttl
-          //client.expire(key,ttl);
-          return cb(null, result);
+          return cb(null, data);
         });
       },
 
@@ -69,10 +60,9 @@ var redisStore = {
         key = prefix + key;
         try {
           var ttl = this.maxAge/1000;
-          var obj = JSON.stringify(val);
 
           debug('setting key ' + key + ' in redis with ttl ' + ttl);
-          client.setex(key, ttl, obj, function(err){
+          client.setex(key, ttl, val, function(err){
             if (cb) {
               cb.apply(this, arguments);
             }
