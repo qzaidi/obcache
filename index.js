@@ -77,9 +77,11 @@ var cache = {
     *
     * Given a function, generates a cache aware version of it.
     * The given function must have a callback as its last argument
+    * skipArgs is the array of indexes for which arguments should 
+    * be skipped for key generation
     *
     **/
-    this.wrap = function (fn,thisobj) {
+    this.wrap = function (fn,thisobj,skipArgs) {
       var stats = this.stats;
       var fname = (fn.name || '_' ) + anonFnId++;
       var cachedfunc;
@@ -105,7 +107,15 @@ var cache = {
           // we aren't resetting pending here, don't think we need to.
         }
 
-        key = keygen(fname,args);
+        if (skipArgs && skipArgs.length) {
+          keyArgs = args.filter(function(a, i) {
+            return skipArgs.indexOf(i) === -1;
+          });
+        } else {
+          keyArgs = args;
+        }
+
+        key = keygen(fname, keyArgs);
 
         log('fetching from cache ' + key);
         data = store.get(key, onget);
@@ -182,33 +192,49 @@ var cache = {
 
 
     /* first argument is the function, last is the value */
-    this.warmup = function() {
+    this.warmup = function(skipArgs) {
       var args = Array.prototype.slice.apply(arguments);
       var func = args.shift();
       var res = args.pop();
-      var fname,key;
+      var fname,key,keyArgs;
 
       if (!func || typeof(func) != 'function' || !func.cacheName) {
         throw new Error('Not a obcache function');
       }
+      
+      if (skipArgs && skipArgs.length) {
+        keyArgs = args.filter(function(a, i) {
+          return skipArgs.indexOf(i) === -1;
+        });
+      } else {
+        keyArgs = args;
+      }
 
       fname = func.cacheName;
-      key = keygen(fname,args);
+      key = keygen(fname,keyArgs);
       log('warming up cache for ' + fname + ' with key ' + key);
       store.set(key,res);
     };
 
-    this.invalidate = function() {
+    this.invalidate = function(skipArgs) {
       var args = Array.prototype.slice.apply(arguments);
       var func = args.shift();
-      var fname,key;
+      var fname,key,keyArgs;
 
       if (!func || typeof(func) != 'function' || !func.cacheName) {
         throw new Error('Not a obcache function');
       }
+      
+      if (skipArgs && skipArgs.length) {
+        keyArgs = args.filter(function(a, i) {
+          return skipArgs.indexOf(i) === -1;
+        });
+      } else {
+        keyArgs = args;
+      }
 
       fname = func.cacheName;
-      key = keygen(fname,args);
+      key = keygen(fname,keyArgs);
       log('invalidating cache for ' + fname + ' with key ' + key);
       store.expire(key);
     };
