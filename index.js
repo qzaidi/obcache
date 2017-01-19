@@ -93,7 +93,7 @@ var cache = {
         var self = thisobj || this;
         var args = Array.prototype.slice.apply(arguments);
         var callback = args.pop();
-        var key,data;
+        var key,data,keyArgs;
 
         if (typeof callback !== 'function') {
           throw new Error('last argument to ' + fname + ' should be a function');
