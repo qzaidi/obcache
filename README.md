@@ -16,7 +16,7 @@ Usage
 ```
 var obcache = require('obcache');
 
-// create a cache with max 10000 items and a TTL of 300 seconds
+// create a cache with max 10000 items and a TTL of 300 milliseconds
 var cache = new obcache.Create({ max: 10000, maxAge: 300 });
 
 ```
