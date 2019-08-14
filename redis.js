@@ -32,7 +32,7 @@ var redisStore = {
     client = redis.createClient(port, host, ropts);
 
     client.on('error', function(err) {
-      console.log('redis error ' + err);
+      debug('redis error ' + err);
     });
 
     if (!options.redis.twemproxy) {
