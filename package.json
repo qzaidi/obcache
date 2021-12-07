@@ -1,6 +1,6 @@
 {
   "name": "obcache",
-  "version": "0.0.15",
+  "version": "0.0.17",
   "description": "Object Caching",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "sigmund": "~1.0.0",
     "lru-cache": "~2.3.1",
     "debug": "*",
-    "redis": "*"
+    "redis": "3.1.2"
   },
   "repository": {
     "type": "git",
